@@ -12,22 +12,87 @@
 </head>
 
 <body class="h-dvh w-full touch-manipulation overflow-hidden overscroll-none bg-zinc-950 text-white">
-    <div class="fixed inset-0 grid h-dvh w-full grid-rows-[42%_58%] text-center md:grid-rows-[45%_55%]">
-        <h1 class="w-full self-end px-4 pb-5 font-[Rock_Salt,cursive] text-6xl font-bold md:pb-8 md:text-9xl leading-[1.75]">Bit Of The Day</h1>
-        <h2 id="botd" class="flex h-full w-full items-center justify-center self-start px-[12%] text-[clamp(1.75rem,8vw,2.25rem)] font-[Patrick_Hand,cursive] font-normal uppercase leading-[1.15] text-amber-300 md:px-24 md:text-6xl"></h2>
-    </div>
-    <button id="left-arrow" type="button" onclick="left()" aria-label="Previous day" class="fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-[max(1.25rem,env(safe-area-inset-left))] flex h-14 w-14 cursor-pointer items-center justify-center border-0 bg-transparent p-0 font-[Rock_Salt,cursive] text-4xl leading-none opacity-50 md:bottom-1/2 md:left-10 md:translate-y-1/2 md:text-8xl"><</button>
-    <button id="right-arrow" type="button" onclick="right()" aria-label="Next day" class="fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-[max(1.25rem,env(safe-area-inset-right))] flex hidden h-14 w-14 cursor-pointer items-center justify-center border-0 bg-transparent p-0 font-[Rock_Salt,cursive] text-4xl leading-none opacity-50 md:bottom-1/2 md:right-10 md:translate-y-1/2 md:text-8xl">></button>
+    <main class="fixed inset-0 grid h-dvh grid-rows-[42%_58%] px-4 text-center md:grid-rows-[45%_55%]">
+        <h1 class="
+            self-end pb-5
+            font-[Rock_Salt,cursive] text-4xl leading-normal font-bold
+            md:pb-8 md:text-9xl
+        ">
+            Bit Of The Day
+        </h1>
+        <h2 id="botd" class="
+            flex h-full items-center justify-center self-start px-10 pb-16
+            font-[Patrick_Hand,cursive] text-3xl leading-tight uppercase text-amber-300
+            md:px-32 md:pb-24 md:text-6xl
+        "></h2>
+    </main>
+
+    <button
+        id="left-arrow"
+        type="button"
+        onclick="left()"
+        aria-label="Previous day"
+        class="
+            fixed bottom-5 left-5 flex h-14 w-14 items-center justify-center
+            border-0 bg-transparent p-0
+            font-[Rock_Salt,cursive] text-4xl opacity-50
+            md:top-1/2 md:left-10 md:bottom-auto md:-translate-y-1/2 md:text-8xl
+            hidden
+        "
+    >&lt;</button>
+
+    <button
+        id="right-arrow"
+        type="button"
+        onclick="right()"
+        aria-label="Next day"
+        class="
+            fixed bottom-5 right-5 flex h-14 w-14 items-center justify-center
+            border-0 bg-transparent p-0
+            font-[Rock_Salt,cursive] text-4xl opacity-50
+            md:top-1/2 md:right-10 md:bottom-auto md:-translate-y-1/2 md:text-8xl
+            hidden
+        "
+    >&gt;</button>
     
     
     <script>
         let fetchedData;
         let d = new Date();
+
+        function dateKey(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function todayKey() {
+            return dateKey(new Date());
+        }
+
+        function updateArrows() {
+            if (!fetchedData) return;
+
+            const previousDay = new Date(d);
+            previousDay.setDate(previousDay.getDate() - 1);
+            document.getElementById('left-arrow').classList.toggle(
+                'hidden',
+                !(dateKey(previousDay) in fetchedData)
+            );
+
+            const nextDay = new Date(d);
+            nextDay.setDate(nextDay.getDate() + 1);
+            document.getElementById('right-arrow').classList.toggle(
+                'hidden',
+                dateKey(nextDay) > todayKey() || !(dateKey(nextDay) in fetchedData)
+            );
+        }
+
         fetch('Bits.json')
             .then(response => response.json())
             .then(data => {
                 fetchedData = data;
-                const today = new Date().toISOString().split('T')[0];
+                d = new Date(todayKey() + 'T00:00:00');
+                const today = todayKey();
+                updateArrows();
                 try {
                     const bit = data[today];
                     if (bit) {
@@ -39,35 +104,30 @@
             });
 
         function left() {
+            if (!fetchedData) return;
+
             d.setDate(d.getDate() - 1);
             let bit = fetchedData[d.toISOString().split('T')[0]];
-            bit && (document.getElementById('botd').innerHTML = bit);
-
-            let d1 = new Date(d);
-            d1.setDate(d1.getDate() - 1);
-            if (d1.toISOString().split('T')[0] in fetchedData) {
-                document.getElementById('left-arrow').classList.remove('hidden');
-            } else {
-                document.getElementById('left-arrow').classList.add('hidden');
-                document.getElementById('right-arrow').classList.remove('hidden'); 
+            if (!bit) {
+                d.setDate(d.getDate() + 1);
+                updateArrows();
+                return;
             }
+            bit && (document.getElementById('botd').innerHTML = bit);
+            updateArrows();
         }
 
         function right() {
+            if (!fetchedData) return;
+
+            const nextDay = new Date(d);
+            nextDay.setDate(nextDay.getDate() + 1);
+            if (dateKey(nextDay) > todayKey() || !(dateKey(nextDay) in fetchedData)) return;
+
             d.setDate(d.getDate() + 1);
             let bit = fetchedData[d.toISOString().split('T')[0]];
             bit && (document.getElementById('botd').innerHTML = bit);
-
-            let d1 = new Date(d);
-            d1.setDate(d1.getDate() + 1);
-            if (d1.toISOString().split('T')[0] in fetchedData) {
-                document.getElementById('right-arrow').classList.remove('hidden');
-            } else {
-                document.getElementById('right-arrow').classList.add('hidden');
-                document.getElementById('left-arrow').classList.remove('hidden');
-                
-            }
-
+            updateArrows();
         }
     </script>
 </body>
