@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Rock+Salt&display=swap" rel="stylesheet">
+    <style type="text/tailwindcss">
+        @theme {
+        }
+
+        .rock-salt-regular {
+            font-family: "Rock Salt", cursive;
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        .patrick-hand-regular {
+            font-family: "Patrick Hand", cursive;
+            font-weight: 400;
+            font-style: normal;
+        }
+    </style>
+    <title>Bit Of The Day</title>
+</head>
+
+<body class="bg-zinc-950 text-white min-h-screen flex items-center justify-center">
+    <div class="container mx-auto p-8 rock-salt-regular font-bold text-center flex flex-col items-center justify-center gap-20 md:gap-50">
+        <h1 class="text-6xl md:text-9xl leading-28">Bit Of The Day</h1>
+        <h2 id="botd"class="text-4xl md:text-6xl text-amber-300 uppercase patrick-hand-regular"></h2>
+    </div>
+    <h1>
+    <h1 id="left-arrow" onclick="left()" class="cursor-pointer text-4xl md:text-8xl rock-salt-regular fixed left-25 bottom-25 md:bottom-[50%] opacity-50"><</h1>
+    <h1 id="right-arrow" onclick="right()" class="cursor-pointer text-4xl md:text-8xl rock-salt-regular fixed right-25 bottom-25 md:bottom-[50%] opacity-50 hidden">></h1>
+    
+    
+    <script>
+        let fetchedData;
+        let d = new Date();
+        fetch('Bits.json')
+            .then(response => response.json())
+            .then(data => {
+                fetchedData = data;
+                const today = new Date().toISOString().split('T')[0];
+                try {
+                    const bit = data[today];
+                    if (bit) {
+                        document.getElementById('botd').innerHTML = bit;
+                    }
+                } catch (error) {
+                    console.error('Error fetching bit of the day:', error);
+                }
+            });
+
+        function left() {
+            d.setDate(d.getDate() - 1);
+            let bit = fetchedData[d.toISOString().split('T')[0]];
+            bit && (document.getElementById('botd').innerHTML = bit);
+
+            let d1 = new Date(d);
+            d1.setDate(d1.getDate() - 1);
+            if (d1.toISOString().split('T')[0] in fetchedData) {
+                document.getElementById('left-arrow').classList.remove('hidden');
+            } else {
+                document.getElementById('left-arrow').classList.add('hidden');
+                document.getElementById('right-arrow').classList.remove('hidden'); 
+            }
+        }
+
+        function right() {
+            d.setDate(d.getDate() + 1);
+            let bit = fetchedData[d.toISOString().split('T')[0]];
+            bit && (document.getElementById('botd').innerHTML = bit);
+
+            let d1 = new Date(d);
+            d1.setDate(d1.getDate() + 1);
+            if (d1.toISOString().split('T')[0] in fetchedData) {
+                document.getElementById('right-arrow').classList.remove('hidden');
+            } else {
+                document.getElementById('right-arrow').classList.add('hidden');
+                document.getElementById('left-arrow').classList.remove('hidden');
+                
+            }
+
+        }
+    </script>
+</body>
+</html>
