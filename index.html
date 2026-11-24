@@ -72,7 +72,9 @@
         let d = new Date();
 
         function dateKey(date) {
-            return date.toISOString().split('T')[0];
+            return new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'America/Los_Angeles'
+            }).format(date);
         }
 
         function todayKey() {
@@ -83,14 +85,14 @@
             if (!fetchedData) return;
 
             const previousDay = new Date(d);
-            previousDay.setDate(previousDay.getDate() - 1);
+            previousDay.setUTCDate(previousDay.getUTCDate() - 1);
             document.getElementById('left-arrow').classList.toggle(
                 'hidden',
                 !(dateKey(previousDay) in fetchedData)
             );
 
             const nextDay = new Date(d);
-            nextDay.setDate(nextDay.getDate() + 1);
+            nextDay.setUTCDate(nextDay.getUTCDate() + 1);
             document.getElementById('right-arrow').classList.toggle(
                 'hidden',
                 dateKey(nextDay) > todayKey() || !(dateKey(nextDay) in fetchedData)
@@ -101,7 +103,7 @@
             .then(response => response.json())
             .then(data => {
                 fetchedData = data;
-                d = new Date(todayKey() + 'T00:00:00');
+                d = new Date(todayKey() + 'T12:00:00Z');
                 const today = todayKey();
                 updateArrows();
                 try {
@@ -117,14 +119,14 @@
         function left() {
             if (!fetchedData) return;
 
-            d.setDate(d.getDate() - 1);
-            let bit = fetchedData[d.toISOString().split('T')[0]];
+            d.setUTCDate(d.getUTCDate() - 1);
+            let bit = fetchedData[dateKey(d)];
             if (!bit) {
-                d.setDate(d.getDate() + 1);
+                d.setUTCDate(d.getUTCDate() + 1);
                 updateArrows();
                 return;
             }
-            bit && (document.getElementById('botd').innerHTML = bit);
+            document.getElementById('botd').innerHTML = bit;
             updateArrows();
         }
 
@@ -132,12 +134,12 @@
             if (!fetchedData) return;
 
             const nextDay = new Date(d);
-            nextDay.setDate(nextDay.getDate() + 1);
+            nextDay.setUTCDate(nextDay.getUTCDate() + 1);
             if (dateKey(nextDay) > todayKey() || !(dateKey(nextDay) in fetchedData)) return;
 
-            d.setDate(d.getDate() + 1);
-            let bit = fetchedData[d.toISOString().split('T')[0]];
-            bit && (document.getElementById('botd').innerHTML = bit);
+            d.setUTCDate(d.getUTCDate() + 1);
+            let bit = fetchedData[dateKey(d)];
+            if (bit) document.getElementById('botd').innerHTML = bit;
             updateArrows();
         }
     </script>
